@@ -1,0 +1,31 @@
+name: Secure OURLY public storefront
+on:
+  push:
+    paths:
+      - '.github/workflows/secure-public.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  remove-public-product-editor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Remove unauthenticated product editor
+        run: python scripts/secure_public_store.py
+      - name: Commit safe storefront
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'No changes needed'
+          else
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add index.html
+            git commit -m "Remove public demo product management controls"
+            git push
+          fi
